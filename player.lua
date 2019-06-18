@@ -1,5 +1,5 @@
-local colors = require 'colors'
 local utils = require 'utils'
+local constants = require 'constants'
 
 local player = {}
 
@@ -11,20 +11,20 @@ function player.init(data)
   player.speed = 120
 end
 
-function player.move(dt, kb, canvas)
-  if kb.isDown('a') or kb.isDown('left') then
+function player.move(dt)
+  if love.keyboard.isDown('a') or love.keyboard.isDown('left') then
     player.x = player.x - player.speed * dt
-  elseif kb.isDown('d') or kb.isDown('right') then
+  elseif love.keyboard.isDown('d') or love.keyboard.isDown('right') then
     player.x = player.x + player.speed * dt
   end
 
-  if kb.isDown('w') or kb.isDown('up') then
+  if love.keyboard.isDown('w') or love.keyboard.isDown('up') then
     player.y = player.y - player.speed * dt
-  elseif kb.isDown('s') or kb.isDown('down') then
+  elseif love.keyboard.isDown('s') or love.keyboard.isDown('down') then
     player.y = player.y + player.speed * dt
   end
 
-  utils.keepOnScreen(player, canvas)
+  utils.keepOnScreen(player)
 end
 
 function player.screenCoords()
@@ -38,15 +38,16 @@ function player.screenCoords()
     player.img:getHeight() / 2
 end
 
-function player.draw(gr)
-  gr.setColor(colors.orange)
-  gr.draw(
+function player.draw()
+  love.graphics.setColor(constants.colors.ORANGE)
+  love.graphics.draw(
     player.img,
     player.screenCoords()
   )
 
   if love.debug then
-    gr.circle('line', player.x, player.y, player.radius)
+    love.graphics.setColor(constants.colors.WHITE)
+    love.graphics.circle('line', player.x, player.y, player.radius)
   end
 end
 

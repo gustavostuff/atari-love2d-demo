@@ -1,42 +1,38 @@
 timer = {
-  timerCollection = {}
+  elements = {}
 }
 
 function timer.new(key, duration)
-  timer.timerCollection[key] = {
+  timer.elements[key] = {
     deltaSum = 0,
-    duration = duration,
+    duration = duration or 1,
     times = 0
   }
 end
 
 function timer.isTimeFor(key, dt)
-  local timer = timer.timerCollection[key]
+  if not timer.exists(key) then return end
 
-  timer.deltaSum = timer.deltaSum + dt
+  local t = timer.elements[key]
+  t.deltaSum = t.deltaSum + dt
 
-  if timer.deltaSum >= timer.duration then
-    timer.times = timer.times + 1
-    timer.deltaSum = 0
+  if t.deltaSum >= t.duration then
+    t.times = t.times + 1
+    t.deltaSum = 0
     return true
   end
 end
 
-function timer.getDelta(key)
-  return timer.timerCollection[key].deltaSum
-end
-
-function timer.getTimes(key)
-  return timer.timerCollection[key].times
-end
-
-function timer.isDone(key)
-  return timer.timerCollection[key].times >= 1
-end
-
 function timer.reset(key)
-  timer.timerCollection[key].deltaSum = 0
-  timer.timerCollection[key].times = 0
+  if not timer.exists(key) then return end
+  local t = timer.elements[key]
+  
+  timer.new(key, t.duration)
+end
+
+function timer.exists(key)
+  if not timer.elements[key] then return false end
+  return true
 end
 
 return timer

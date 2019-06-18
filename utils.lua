@@ -1,30 +1,32 @@
+local constants = require 'constants'
+
 return {
   computeRebound = function(obj, rectangle)
     if obj.x >= rectangle.right then
-      obj.x = canvas:getWidth()
+      obj.x = rectangle.right
       obj.speedX = obj.speedX * -1
     elseif obj.x <= rectangle.left then
-      obj.x = 0
+      obj.x = rectangle.left
       obj.speedX = obj.speedX * -1
     end
 
     if obj.y >= rectangle.bottom then
-      obj.y = canvas:getHeight()
+      obj.y = rectangle.bottom
       obj.speedY = obj.speedY * -1
     elseif obj.y <= rectangle.top then
-      obj.y = 0
+      obj.y = rectangle.top
       obj.speedY = obj.speedY * -1
     end
   end,
-  keepOnScreen = function(obj, canvas)
-    if obj.x > canvas:getWidth() then
-      obj.x = canvas:getWidth()
+  keepOnScreen = function(obj)
+    if obj.x > constants.CANVAS_WIDTH then
+      obj.x = constants.CANVAS_WIDTH
     end
 
     if obj.x < 0 then obj.x = 0 end
 
-    if obj.y > canvas:getHeight() then
-      obj.y = canvas:getHeight()
+    if obj.y > constants.CANVAS_HEIGHT then
+      obj.y = constants.CANVAS_HEIGHT
     end
 
     if obj.y < 0 then obj.y = 0 end
@@ -34,6 +36,18 @@ return {
     local distance = math.sqrt(math.pow(a.x - b.x, 2) + math.pow(a.y - b.y, 2))
 
     return distance < a.radius + b.radius
+  end,
+  drawCenteredImage = function(obj)
+    love.graphics.draw(
+      obj.img,
+      math.floor(obj.x),
+      math.floor(obj.y),
+      0,
+      1,
+      1,
+      obj.img:getWidth() / 2,
+      obj.img:getHeight() / 2
+    )
   end,
   mouseBtns = {
     LEFT = 1,

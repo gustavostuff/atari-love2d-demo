@@ -1,183 +1,230 @@
---[[
-
-Workshop keypoints:
-
-* Pythagoras for mouse bullet shooting
-* Direction inversion for bullet rebound on screen
-* More Pythagoras for enemy<>bullet collisions
-* Enemy spawn
-* Game state
-
-Contest notes:
-
-* Send this .love file to the class (slack preferably)
-* Try the .love file to see if it works
-* At 3, we start
-* Send me the score for email
-* Give the price to the winner and close the workshop
-
-]]
-
-local colors = require 'colors'
 local player = require 'player'
 local bullet = require 'bullet'
 local enemy = require 'enemy'
 local timer = require 'timer'
 local utils = require 'utils'
-
-local gr = love.graphics
-local kb = love.keyboard
-local au = love.audio
-local mo = love.mouse
+local constants = require 'constants'
 
 --love.debug = true
 
 function love.load()
-  imgsDir = '/imgs/'
-  fontsDir = '/fonts/'
-  soundsDir = '/sounds/'
-
-  mainFont = gr.newFont(fontsDir .. 'ATARCC__.TTF', 8)
-  gr.setFont(mainFont)
-
-  imgPlayer = gr.newImage(imgsDir .. 'player.png')
-  imgBullet = gr.newImage(imgsDir .. 'bullet.png')
-  imgEnemy = gr.newImage(imgsDir .. 'enemy.png')
-
-  soundGameOver = love.audio.newSource(soundsDir .. 'gameOver.ogg', 'static')
-  soundEnemyDies = love.audio.newSource(soundsDir .. 'enemyDies.ogg', 'static')
-
-  canvas = gr.newCanvas(160, 192) -- Atari 2600 max resolution
-  canvasW = canvas:getWidth()
-  canvasH = canvas:getHeight()
-  --canvas:setFilter('nearest', 'nearest')
-
-  sx, sy = gr.getWidth() / canvasW, gr.getHeight() / canvasH
-  MAX_ENEMIES = 10
-  gameOverText = 'GAME OVER'
-  gameStarted = false
-
-  -- timers:
-
-  timer.new('shoot', 0.2)
-
-  -- player:
-
-  player.init({
-    img = imgPlayer
-  })
-
+  initDirectories()
+  initGraphics()
+  initAudio()
+  initCanvas()
+  initOtherStuff()
   setInitialState()
 end
 
+function initDirectories()
+  imgsDir = '/assets/imgs/'
+  fontsDir = '/assets/fonts/'
+  soundsDir = '/assets/sounds/'
+end
+
+function initGraphics()
+  mainFont = love.graphics.newFont(fontsDir .. 'ATARCC__.TTF', 8)
+  love.graphics.setFont(mainFont)
+
+  imgPlayer = love.graphics.newImage(imgsDir .. 'player.png')
+  imgBullet = love.graphics.newImage(imgsDir .. 'bullet.png')
+  imgEnemy = love.graphics.newImage(imgsDir .. 'enemy.png')
+end
+
+function initAudio()
+  soundGameOver = love.audio.newSource(soundsDir .. 'gameOver.ogg', 'static')
+  soundEnemyDies = love.audio.newSource(soundsDir .. 'enemyDies.ogg', 'static')
+end
+
+function initCanvas()
+  canvas = love.graphics.newCanvas(160, 192) -- Atari 2600 max resolution
+  --canvas:setFilter('nearest', 'nearest')
+  sx = love.graphics.getWidth() / constants.CANVAS_WIDTH
+  sy = love.graphics.getHeight() / constants.CANVAS_HEIGHT
+end
+
+function initOtherStuff()
+  gameOverText = 'GAME OVER'
+  gameStarted = false
+  timer.new('shoot', .2)
+  player.init({
+    img = imgPlayer
+  })
+end
+
+function setInitialState()
+  enemies = {}
+  bullets = {}
+  player.x = constants.CANVAS_WIDTH / 2
+  player.y = constants.CANVAS_HEIGHT
+  score = 0
+  gameOver = false
+
+  for i = 1, constants.MAX_ENEMIES do
+    table.insert(enemies, enemy.new({
+      img = imgEnemy
+    }))
+  end
+end
+
+
+
+--*************************************************************************
+--*************************************************************************
+--*************************************************************************
+
+
+
 function love.update(dt)
   if not gameOver and gameStarted then
-    -- player:
-
-    player.move(dt, kb, canvas)
-
-    if mo.isDown(utils.mouseBtns.LEFT) and timer.isTimeFor('shoot', dt) then
-      shootBullet()
-    end
-
-    -- collisions enemy <> bullet, enemy <> player:
-
-    for i = #enemies, 1, -1 do
-      local e = enemies[i]
-
-      if utils.areColliding(e, player) then
-        soundGameOver:play()
-        gameOver = true
-      end
-
-      for j = #bullets, 1, -1 do
-        local b = bullets[j]
-
-        if utils.areColliding(b, e) then
-          soundEnemyDies:play()
-          e.alive = false
-          b.alive = false
-          increaseScore()
-        end
-      end
-    end
-
-    -- update stuff:
-
-    enemy.updateAll(enemies, canvas, dt)
-    bullet.updateAll(bullets, canvas, dt)
+    updatePlayer(dt)
+    checkCollisions()
+    updateEnemies(dt)
+    bullet.updateAll(bullets, dt)
   end
 end
+
+function updatePlayer(dt)
+  player.move(dt)
+
+  if love.mouse.isDown(utils.mouseBtns.LEFT) and timer.isTimeFor('shoot', dt) then
+    shootBullet()
+  end
+end
+
+function checkCollisions()
+  for i = #enemies, 1, -1 do
+    local enemy = enemies[i]
+
+    checkCollisionEnemyPlayer(enemy, player)
+
+    for j = #bullets, 1, -1 do
+      local bullet = bullets[j]
+      checkCollisionEnemyBullet(enemy, bullet)
+    end
+  end
+end
+
+function updateEnemies(dt)
+  local deadEnemy, index = enemy.updateAll(enemies, dt)
+
+  if deadEnemy then
+    table.insert(enemies, enemy.new({
+      canvas = canvas,
+      img = imgEnemy,
+      speed = math.abs(deadEnemy.speedX) + enemy.speedIncrease
+    }))
+    table.remove(enemies, index)
+  end
+end
+
+function checkCollisionEnemyPlayer(enemy, player)
+  if utils.areColliding(enemy, player) then
+    soundGameOver:play()
+    gameOver = true
+  end
+end
+
+function checkCollisionEnemyBullet(enemy, bullet)
+  if utils.areColliding(enemy, bullet) then
+    soundEnemyDies:play()
+    enemy.alive = false
+    bullet.alive = false
+    increaseScore()
+  end
+end
+
+
+--*************************************************************************
+--*************************************************************************
+--*************************************************************************
+
 
 function love.draw()
-  gr.setColor(colors.white)
-  gr.setCanvas(canvas)
+  love.graphics.setColor(constants.colors.WHITE)
+  love.graphics.setCanvas(canvas)
 
+  drawBackground()
 
   if not gameStarted then
-    gr.setColor(colors.black)
-    drawBackground(gr)
-    gr.setColor(colors.white)
-    gr.print('PRESS ANY KEY')
+    drawInitialScreen()
   else
-    -- background:
-
-    drawBackground(gr)
-
-    -- player:
-
-    player.draw(gr)
-
-    -- bullets:
-
-    for i = 1, #bullets do
-      bullets[i]:draw(gr)
-
-    end
-
-    -- enemies:
-
-    for i = 1, #enemies do
-      enemies[i]:draw(gr)
-    end
-
-    -- game over:
-
-    if gameOver then
-      gr.setColor(colors.white)
-      gr.print(
-        gameOverText,
-        math.floor(canvasW / 2 - gr.getFont():getWidth(gameOverText) / 2),
-        math.floor(canvasH / 2 - gr.getFont():getHeight() / 2)
-      )
-    end
-
-    -- score:
-
-    gr.setColor(colors.white)
-    gr.print(score)
+    drawMainStuff()
   end
 
-
-  gr.setCanvas()
-  gr.setColor(colors.white)
-  gr.draw(canvas, 0, 0, 0, sx, sy)
+  love.graphics.setCanvas()
+  love.graphics.setColor(constants.colors.WHITE)
+  love.graphics.draw(canvas, 0, 0, 0, sx, sy)
 
   if love.debug then
-    gr.setColor(colors.white)
-    gr.print('FPS ' .. love.timer.getFPS() ..
-      '\nbullets: ' .. #bullets ..
-      '\nscore:' .. score, 0, 30)
+    printDebug()
   end
 end
 
-function drawBackground(gr)
-  gr.setColor(colors.black)
-  gr.rectangle('fill', 0, 0, canvasW, canvasH)
+function drawInitialScreen()
+  love.graphics.setColor(constants.colors.WHITE)
+  love.graphics.print('PRESS ANY KEY')
 end
 
-function increaseScore()
-  score = score + 10
+function drawMainStuff()
+  player.draw()
+
+  for i = 1, #bullets do
+    bullets[i]:draw()
+  end
+
+  for i = 1, #enemies do
+    enemies[i]:draw()
+  end
+
+  if gameOver then
+    love.graphics.setColor(constants.colors.WHITE)
+    love.graphics.print(
+      gameOverText,
+      math.floor(constants.CANVAS_WIDTH / 2 - love.graphics.getFont():getWidth(gameOverText) / 2),
+      math.floor(constants.CANVAS_HEIGHT / 2 - love.graphics.getFont():getHeight() / 2)
+    )
+  end
+
+  love.graphics.setColor(constants.colors.WHITE)
+  love.graphics.print(score)
+end
+
+function drawBackground()
+  love.graphics.clear()
+  love.graphics.setColor(constants.colors.BLACK)
+  love.graphics.rectangle('fill', 0, 0, constants.CANVAS_WIDTH, constants.CANVAS_HEIGHT)
+end
+
+
+
+
+--*******************************************************
+--****************** general functions ******************
+--*******************************************************
+
+
+
+
+function increaseScore(amount)
+  score = score + (amount or 10)
+end
+
+-- debug:
+function highestEnemySpeed(enemies)
+  if not love.debug then
+    return
+  end
+  
+  local highest = 0
+
+  for i = 1, #enemies do
+    if math.abs(enemies[i].speedX) > highest then
+      highest = math.abs(enemies[i].speedX)
+    end
+  end
+
+  return highest
 end
 
 function shootBullet()
@@ -185,28 +232,38 @@ function shootBullet()
     bullet.new({
       playerX = player.x,
       playerY = player.y,
-      mouseX = mo.getX() / sx,
-      mouseY= mo.getY() / sy,
-      img = imgBullet
+      mouseX = love.mouse.getX() / sx,
+      mouseY = love.mouse.getY() / sy,
+      img = imgBullet,
+      radius = radius
     })
   )
 end
 
-function setInitialState()
-  enemies = {}
-  bullets = {}
-  player.x = canvasW / 2
-  player.y = canvasH
-  score = 0
-  gameOver = false
-
-  for i = 1, MAX_ENEMIES do
-    table.insert(enemies, enemy.new({
-      canvas = canvas,
-      img = imgEnemy
-    }))
-  end
+function printDebug()
+  love.graphics.setColor(constants.colors.WHITE)
+  love.graphics.print(
+    'FPS ' .. love.timer.getFPS() ..
+    '\nbullets: ' .. #bullets ..
+    '\nscore:' .. score ..
+    '\nenemies:' .. #enemies ..
+    '\nplayer x, y:' ..
+      string.format('%.2f', player.x) .. ', ' ..
+      string.format('%.2f', player.y) ..
+    '\nhighest enemy speed: ' .. highestEnemySpeed(enemies)
+    , 0, 30
+  )
 end
+
+
+
+
+--*******************************************************
+--******************** callbacks ************************
+--*******************************************************
+
+
+
 
 function love.keypressed(k)
   if k == 'escape' then
@@ -233,6 +290,6 @@ function love.mousereleased(x, y, btn)
 end
 
 function love.resize(w, h)
-  sx = w / canvasW
-  sy = h / canvasH
+  sx = w / constants.CANVAS_WIDTH
+  sy = h / constants.CANVAS_HEIGHT
 end

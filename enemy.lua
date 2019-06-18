@@ -1,19 +1,18 @@
+local utils = require 'utils'
+local constants = require 'constants'
+
 enemy = {
-  initSpeed = 10
+  initSpeed = 10,
+  speedIncrease = 8
 }
 enemy.__index = enemy -- google OOP Lua
-
-local utils = require 'utils'
-local colors = require 'colors'
 
 function enemy.new(data)
   local e = {}
 
-  -- math similar to bullet.new:
-
   e.radius = 5
-  e.x = love.math.random(0, data.canvas:getWidth())
-  e.y = love.math.random(-data.canvas:getHeight() / 3, 0)
+  e.x = love.math.random(0, constants.CANVAS_WIDTH)
+  e.y = love.math.random(-constants.CANVAS_HEIGHT / 2, 0)
   e.alive = true
 
   e.speedX, e.speedY = data.speed or enemy.initSpeed, data.speed or enemy.initSpeed
@@ -31,25 +30,20 @@ function enemy.new(data)
   return setmetatable(e, enemy) -- google OOP Lua
 end
 
-function enemy.updateAll(enemies, canvas, dt)
+function enemy.updateAll(enemies, dt)
   for i = #enemies, 1, -1 do
     local e = enemies[i]
 
     e:update(dt)
     utils.computeRebound(e, {
       left = 0,
-      right = canvas:getWidth(),
-      top = -canvas:getHeight() / 2,
-      bottom = canvas:getHeight()
+      right = constants.CANVAS_WIDTH,
+      top = -constants.CANVAS_HEIGHT / 2,
+      bottom = constants.CANVAS_HEIGHT
     })
 
     if not e.alive then
-      table.insert(enemies, enemy.new({
-        canvas = canvas,
-        img = imgEnemy,
-        speed = math.abs(e.speedX) + 5
-      }))
-      table.remove(enemies, i)
+      return e, i
     end
   end
 end
@@ -59,22 +53,13 @@ function enemy:update(dt)
   self.y = self.y + self.speedY * dt
 end
 
-function enemy:draw(gr)
-  gr.setColor(colors.pink)
+function enemy:draw()
+  love.graphics.setColor(constants.colors.PINK)
 
-  gr.draw(
-    self.img,
-    math.floor(self.x),
-    math.floor(self.y),
-    0,
-    1,
-    1,
-    self.img:getWidth() / 2,
-    self.img:getHeight() / 2
-  )
+  utils.drawCenteredImage(self)
 
   if love.debug then
-    gr.circle('line', self.x, self.y, self.radius)
+    love.graphics.circle('line', self.x, self.y, self.radius)
   end
 end
 

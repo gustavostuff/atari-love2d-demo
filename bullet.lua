@@ -1,8 +1,12 @@
-local bullet = {}
-bullet.__index = bullet -- google OOP Lua
-
-local colors = require 'colors'
 local utils = require 'utils'
+local constants = require 'constants'
+
+local bullet = {
+  normalDelay = 0.2,
+  extraBulletsDelay = 0.1,
+  speed = 180
+}
+bullet.__index = bullet -- google OOP Lua
 
 function bullet.new(data)
   local b = {}
@@ -11,7 +15,6 @@ function bullet.new(data)
   b.y = data.playerY
   b.lifespan = 3
   b.alive = true
-  b.speed = 150
 
   -- shoot towards mouse with a fixed speed:
 
@@ -20,25 +23,25 @@ function bullet.new(data)
     math.pow(data.mouseY - data.playerY, 2)
   )
 
-  b.speedX = (data.mouseX - b.x) / distance * b.speed
-  b.speedY = (data.mouseY - b.y) / distance * b.speed
+  b.speedX = (data.mouseX - b.x) / distance * bullet.speed
+  b.speedY = (data.mouseY - b.y) / distance * bullet.speed
 
   b.img = data.img
-  b.radius = 1
+  b.radius = data.radius or 1
 
   return setmetatable(b, bullet) -- google OOP Lua
 end
 
-function bullet.updateAll(bullets, canvas, dt)
+function bullet.updateAll(bullets, dt)
   for i = #bullets, 1, -1 do
     local b = bullets[i]
 
     b:update(dt)
     utils.computeRebound(b, {
       left = 0,
-      right = canvas:getWidth(),
+      right = constants.CANVAS_WIDTH,
       top = 0,
-      bottom = canvas:getHeight()
+      bottom = constants.CANVAS_HEIGHT
     })
 
     if not b.alive then
@@ -57,22 +60,14 @@ function bullet:update(dt)
   end
 end
 
-function bullet:draw(gr)
-  gr.setColor(colors.orange)
+function bullet:draw()
+  love.graphics.setColor(constants.colors.ORANGE)
 
-  gr.draw(
-    self.img,
-    math.floor(self.x),
-    math.floor(self.y),
-    0,
-    1,
-    1,
-    self.img:getWidth() / 2,
-    self.img:getHeight() / 2
-  )
+  utils.drawCenteredImage(self)
 
   if love.debug then
-    gr.circle('line', self.x, self.y, self.radius)
+    love.graphics.setColor(constants.colors.WHITE)
+    love.graphics.circle('line', self.x, self.y, self.radius)
   end
 end
 
