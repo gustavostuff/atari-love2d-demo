@@ -1,8 +1,13 @@
 ## A simple Atari2600-like shooter PC game
 
-[![Screen-Shot-2019-06-07-at-5-15-15-PM.png](https://i.postimg.cc/k5HSgGz6/Screen-Shot-2019-06-07-at-5-15-15-PM.png)](https://postimg.cc/t1hJrqXp)
+[![capture.png](https://i.postimg.cc/Gmkz3fxm/capture.png)](https://postimg.cc/nXhq00Wy)
 
-### Controls:
+### Installation
+
+* The game is made with [LÖVE](https://love2d.org/), install it first
+* Once installed, see [Game distribution](https://love2d.org/wiki/Game_Distribution)
+
+### Controls
 
 * Shoot with left click
 * Move with WASD or arrow keys
