@@ -5,8 +5,6 @@ local timer = require 'timer'
 local utils = require 'utils'
 local constants = require 'constants'
 
---love.debug = true
-
 function love.load()
   initDirectories()
   initGraphics()
@@ -135,9 +133,11 @@ function checkCollisionEnemyBullet(enemy, bullet)
 end
 
 
+
 --*************************************************************************
 --*************************************************************************
 --*************************************************************************
+
 
 
 function love.draw()
@@ -198,11 +198,9 @@ end
 
 
 
-
 --*******************************************************
 --****************** general functions ******************
 --*******************************************************
-
 
 
 
@@ -210,10 +208,10 @@ function increaseScore(amount)
   score = score + (amount or 10)
 end
 
--- debug:
+-- debug only function:
 function highestEnemySpeed(enemies)
   if not love.debug then
-    return
+    do return end
   end
   
   local highest = 0
@@ -250,18 +248,16 @@ function printDebug()
     '\nplayer x, y:' ..
       string.format('%.2f', player.x) .. ', ' ..
       string.format('%.2f', player.y) ..
-    '\nhighest enemy speed: ' .. highestEnemySpeed(enemies)
-    , 0, 30
+    '\nhighest enemy speed: ' .. highestEnemySpeed(enemies) ..
+    '', 0, 30
   )
 end
-
 
 
 
 --*******************************************************
 --******************** callbacks ************************
 --*******************************************************
-
 
 
 
@@ -273,6 +269,12 @@ function love.keypressed(k)
       gameStarted = true
     elseif gameOver and k == 'return' then
       setInitialState()
+    end
+
+    if love.keyboard.isDown('lctrl') or love.keyboard.isDown('rctrl') then
+      if k == 'd' then
+        love.debug = not love.debug
+      end
     end
   end
 end

@@ -12,6 +12,10 @@ function player.init(data)
 end
 
 function player.move(dt)
+  if love.keyboard.isDown('lctrl') or love.keyboard.isDown('rctrl') then
+    do return end
+  end
+
   if love.keyboard.isDown('a') or love.keyboard.isDown('left') then
     player.x = player.x - player.speed * dt
   elseif love.keyboard.isDown('d') or love.keyboard.isDown('right') then

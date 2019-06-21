@@ -59,6 +59,7 @@ function enemy:draw()
   utils.drawCenteredImage(self)
 
   if love.debug then
+    love.graphics.setColor(constants.colors.WHITE)
     love.graphics.circle('line', self.x, self.y, self.radius)
   end
 end
