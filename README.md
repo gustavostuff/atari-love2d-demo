@@ -7,7 +7,7 @@
 ### How to run the game
 
 * The game is made with [LÖVE](https://love2d.org/), install it first
-* Once LÖVE is installed, see [Game distribution](https://love2d.org/wiki/Game_Distribution)
+* Once LÖVE is installed, see [Game distribution](https://love2d.org/wiki/Game_Distribution) (or just double click ```game.love```)
 
 ### Controls
 
