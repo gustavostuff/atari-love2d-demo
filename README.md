@@ -2,7 +2,7 @@
 
 [![License](http://img.shields.io/:license-MIT-blue.svg)](https://github.com/tavuntu/atari-love2d-demo/blob/master/LICENSE.md)
 
-[![capture.png](https://i.postimg.cc/Gmkz3fxm/capture.png)](https://postimg.cc/nXhq00Wy)
+[![atari-gif.gif](https://i.postimg.cc/5NsKSGdf/atari-gif.gif)](https://postimg.cc/8jrb1ZzY)
 
 ### How to run the game
 
