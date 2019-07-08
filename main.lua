@@ -27,6 +27,7 @@ function initGraphics()
   imgPlayer = love.graphics.newImage(imgsDir .. 'player.png')
   imgBullet = love.graphics.newImage(imgsDir .. 'bullet.png')
   imgEnemy = love.graphics.newImage(imgsDir .. 'enemy.png')
+  imgTarget = love.graphics.newImage(imgsDir .. 'target.png')
 end
 
 function initAudio()
@@ -48,13 +49,14 @@ function initOtherStuff()
   player.init({
     img = imgPlayer
   })
+  love.mouse.setCursor(love.mouse.newCursor(love.image.newImageData(1, 1), 0, 0))
 end
 
 function setInitialState()
   enemies = {}
   bullets = {}
   player.x = constants.CANVAS_WIDTH / 2
-  player.y = constants.CANVAS_HEIGHT
+  player.y = constants.CANVAS_HEIGHT - 30
   score = 0
   gameOver = false
 
@@ -177,6 +179,8 @@ function drawMainStuff()
     enemies[i]:draw()
   end
 
+  drawTarget()
+
   if gameOver then
     love.graphics.setColor(constants.colors.WHITE)
     love.graphics.print(
@@ -188,6 +192,19 @@ function drawMainStuff()
 
   love.graphics.setColor(constants.colors.WHITE)
   love.graphics.print(score)
+end
+
+function drawTarget()
+  love.graphics.setColor(constants.colors.ORANGE)
+  love.graphics.draw(imgTarget,
+    math.floor(love.mouse.getX() / sx),
+    math.floor(love.mouse.getY() / sy),
+    0,
+    1,
+    1,
+    imgTarget:getWidth() / 2,
+    imgTarget:getHeight() / 2
+  )
 end
 
 function drawBackground()
@@ -280,8 +297,12 @@ function love.keypressed(k)
 end
 
 function love.mousepressed(x, y, btn)
-  if btn == utils.mouseBtns.LEFT and gameStarted and not gameOver then
-    shootBullet()
+  if btn == utils.mouseBtns.LEFT then
+    if gameStarted and not gameOver then
+      shootBullet()
+    elseif gameOver then
+      setInitialState()
+    end
   end
 end
 

@@ -28,7 +28,7 @@ function player.move(dt)
     player.y = player.y + player.speed * dt
   end
 
-  utils.keepOnScreen(player)
+  utils.keepOnScreen(player, player.radius * 2.2)
 end
 
 function player.screenCoords()

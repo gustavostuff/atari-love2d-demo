@@ -18,18 +18,20 @@ return {
       obj.speedY = obj.speedY * -1
     end
   end,
-  keepOnScreen = function(obj)
-    if obj.x > constants.CANVAS_WIDTH then
-      obj.x = constants.CANVAS_WIDTH
+  keepOnScreen = function(obj, margin)
+    local m = margin or 0
+
+    if (obj.x + m) > constants.CANVAS_WIDTH then
+      obj.x = constants.CANVAS_WIDTH - m
     end
 
-    if obj.x < 0 then obj.x = 0 end
+    if (obj.x - m) < 0 then obj.x = m end
 
-    if obj.y > constants.CANVAS_HEIGHT then
-      obj.y = constants.CANVAS_HEIGHT
+    if (obj.y + m) > constants.CANVAS_HEIGHT then
+      obj.y = constants.CANVAS_HEIGHT - m
     end
 
-    if obj.y < 0 then obj.y = 0 end
+    if (obj.y - m) < 0 then obj.y = m end
   end,
   areColliding = function(a, b)
     -- Pythagoras
